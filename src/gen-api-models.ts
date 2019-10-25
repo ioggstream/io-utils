@@ -234,7 +234,19 @@ export function renderOperation(
   const responses = Object.keys(operation.responses as object).map(
     responseStatus => {
       const response = operation.responses![responseStatus];
-      const typeRef = response.schema ? response.schema.$ref : undefined;
+      const media_type = "application/json"
+      const typeRef =
+        // get schema from Swagger...
+        response.schema
+          ? response.schema.$ref
+          // ... or try with OAS3
+          : response.content
+            ? response.content[media_type]
+              && response.content[media_type].schema
+              ? response.content[media_type].schema.$ref
+              : undefined
+          // Not OAS2 or missing media-type in response.content
+          : undefined;
       const parsedRef = typeRef ? typeFromRef(typeRef) : undefined;
       if (parsedRef !== undefined) {
         importedTypes.add(parsedRef.e2);
