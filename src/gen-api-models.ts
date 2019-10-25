@@ -62,13 +62,25 @@ function typeFromRef(
   s: string
 ): ITuple2<"definition" | "parameter" | "other", string> | undefined {
   const parts = s.split("/");
+
+  if (!parts) {
+    return undefined;
+  }
+
+  // If it's an OAS3, remove the "components" part.
+  if (parts[1] === "components") {
+    parts.splice(1,1);
+  }
+
   if (parts && parts.length === 3) {
     const refType: "definition" | "parameter" | "other" =
       parts[1] === "definitions"
         ? "definition"
-        : parts[1] === "parameters"
-        ? "parameter"
-        : "other";
+        : parts[1] === "schemas"
+          ? "definition"
+            : parts[1] === "parameters"
+              ? "parameter"
+              : "other";
     return Tuple2(refType, parts[2]);
   }
   return undefined;
@@ -148,11 +160,16 @@ export function renderOperation(
         console.warn(`Unrecognized ref type [${refInParam}]`);
         return;
       }
+      // if the reference type is  "definition"
+      // e2 contains a schema object
+      // otherwise it is the schema name
       const paramType: string | undefined =
         refType === "definition"
           ? parsedRef.e2
           : specParameters
-          ? specTypeToTs((specParameters as any)[parsedRef.e2].type)
+          ? specTypeToTs((specParameters as any)[parsedRef.e2].type
+                         || (specParameters as any)[parsedRef.e2].schema.type
+                         )
           : undefined;
 
       if (paramType === undefined) {

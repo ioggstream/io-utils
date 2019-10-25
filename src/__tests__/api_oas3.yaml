@@ -42,10 +42,34 @@ paths:
       responses:
         "200":
           description: File uploaded
+  /test-serializers:
+    post:
+      operationId: "testSerializer"
+      parameters:
+        - $ref: "#/components/parameters/QO"
+      responses:
+        "200":
+          description: "File uploaded"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        "403":
+          description: "Error string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
 servers:
   - url: https://localhost/api/v1
 components:
   parameters:
+    QO:
+      name: "qo"
+      in: "query"
+      required: false
+      schema:
+        type: "string"
     PaginationRequest:
       name: cursor
       in: query
@@ -79,6 +103,12 @@ components:
             write: Grants write access
             admin: Grants access to admin operations
   schemas:
+    Problem:
+      properties:
+        title:
+          type: string
+        type:
+          type: string
     AllOfTest:
       allOf:
         - type: object
